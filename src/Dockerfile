@@ -1,9 +1,33 @@
-# syntax=docker/dockerfile:1
-FROM python:3-alpine
-ENV PYTHONUNBUFFERED=1
-WORKDIR /usr/src/app
-COPY requirements.txt /usr/src/app/
-RUN pip install -U -r requirements.txt
-COPY ./web /usr/src/app/
-COPY ./entrypoint.sh /
-ENTRYPOINT ["/entrypoint.sh"]
+FROM --platform=$BUILDPLATFORM node:alpine AS front-builder
+WORKDIR /app
+COPY frontend/ ./
+RUN npm install && npm run build
+
+FROM golang:1.25-alpine AS backend-builder
+WORKDIR /app
+ARG TARGETARCH
+ENV CGO_ENABLED=0
+ENV GOARCH=$TARGETARCH
+
+RUN apk update && apk add --no-cache \
+    make \
+    git \
+    wget \
+    unzip \
+    bash
+
+COPY . .
+COPY --from=front-builder /app/dist/ /app/web/html/
+
+RUN go build -ldflags="-w -s" \
+    -tags "with_quic,with_grpc,with_utls,with_acme,with_gvisor,netgo" \
+    -o sui main.go
+
+FROM --platform=$TARGETPLATFORM alpine
+LABEL org.opencontainers.image.authors="alireza7@gmail.com"
+ENV TZ=Asia/Tehran
+WORKDIR /app
+RUN apk add --no-cache --update ca-certificates tzdata
+COPY --from=backend-builder /app/sui /app/
+COPY entrypoint.sh /app/
+ENTRYPOINT [ "./entrypoint.sh" ]
