@@ -1,3 +1,15 @@
+# v0.0.4 (Sun Dec 14 2025)
+
+#### ⚠️ Pushed to `main`
+
+- Update default web and sub ports to 443 and 80 ([@igor04091968](https://github.com/igor04091968))
+
+#### Authors: 1
+
+- IgorRachkov ([@igor04091968](https://github.com/igor04091968))
+
+---
+
 # v0.0.3 (Sun Dec 14 2025)
 
 #### ⚠️ Pushed to `main`
