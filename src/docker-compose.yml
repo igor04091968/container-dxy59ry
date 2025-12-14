@@ -10,8 +10,8 @@ services:
     tty: true
     restart: unless-stopped
     ports:
-      - "80:80"
       - "443:443"
+      - "80:80"
     networks:
       - s-ui
     entrypoint: "./entrypoint.sh"
